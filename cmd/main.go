@@ -9,8 +9,8 @@ import (
 )
 
 type data struct {
-	name     string `json:"name"`
-	employee string `json:"employee"`
+	Name     string `json:"name"`
+	Employee string `json:"employee"`
 }
 
 func main() {
@@ -20,8 +20,8 @@ func main() {
 	for i := 0; i < 10; i++ {
 		key, _ := uuid.GenerateUUID()
 		val := &data{
-			name:     "ashutosh",
-			employee: "self-employed",
+			Name:     "ashutosh",
+			Employee: "self-employed",
 		}
 		d, _ := json.Marshal(val)
 		err := prod.WriteMessage(key, d)

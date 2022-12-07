@@ -14,8 +14,8 @@ type Consumer struct {
 }
 
 type data struct {
-	name     string `json:"name"`
-	employee string `json:"employee"`
+	Name     string `json:"name"`
+	Employee string `json:"employee"`
 }
 
 func InitConsumer(brokers []string, topic string) *Consumer {
