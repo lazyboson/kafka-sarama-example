@@ -7,10 +7,9 @@ import (
 )
 
 type Consumer struct {
-	flowEventReader             sarama.ConsumerGroup
-	topic                       string
-	brokerUrls                  []string
-	exampleConsumerGroupHandler sarama.ConsumerGroupHandler
+	flowEventReader sarama.ConsumerGroup
+	topic           string
+	brokerUrls      []string
 }
 
 func InitConsumer(brokers []string, topic string) *Consumer {
@@ -25,30 +24,28 @@ func InitConsumer(brokers []string, topic string) *Consumer {
 	if err != nil {
 		panic("failed to create consumer group on kafka cluster")
 	}
-	c.exampleConsumerGroupHandler = p{}
+
 	return c
 }
 
-type p struct {
+type KafkaConsumerGroupHandler struct {
 	Cons *Consumer
 }
 
 func (c *Consumer) HandleMessages() {
 	// Consume from kafka and process
 	for {
-		var err = c.flowEventReader.Consume(context.Background(), []string{c.topic}, &p{Cons: c})
+		var err = c.flowEventReader.Consume(context.Background(), []string{c.topic}, &KafkaConsumerGroupHandler{Cons: c})
 		if err != nil {
 			fmt.Println("FAILED")
 			continue
 		}
-		fmt.Println("messages are received")
 	}
 
 }
-func (p) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (p) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
-func (l p) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	fmt.Println("inside the  first ConsumerClaim")
+func (*KafkaConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (*KafkaConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (l *KafkaConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
 	for msg := range claim.Messages() {
 		l.Cons.logMessage(msg)
 		sess.MarkMessage(msg, "")
