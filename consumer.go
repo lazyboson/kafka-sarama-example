@@ -30,11 +30,13 @@ func InitConsumer(brokers []string, topic string) *Consumer {
 func (c *Consumer) HandleMessages() {
 	// Consume from kafka and process
 	for {
-		err := c.flowEventReader.Consume(context.Background(), []string{c.topic}, exampleConsumerGroupHandler{})
+		e := exampleConsumerGroupHandler{}
+		err := c.flowEventReader.Consume(context.Background(), []string{c.topic}, e)
 		if err != nil {
 			fmt.Errorf("FAILED")
 		}
 	}
+
 }
 
 type exampleConsumerGroupHandler struct{}
@@ -42,7 +44,9 @@ type exampleConsumerGroupHandler struct{}
 func (exampleConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
 func (exampleConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
 func (h exampleConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	fmt.Println("inside the ConsumerClaim")
 	for msg := range claim.Messages() {
+		fmt.Printf("message data: %s", string(msg.Key))
 		fmt.Printf("Message topic:%q partition:%d offset:%d\n", msg.Topic, msg.Partition, msg.Offset)
 		sess.MarkMessage(msg, "")
 	}
@@ -58,7 +62,7 @@ func createSaramaKafkaConf() *sarama.Config {
 	}
 	conf.Version = kafkaVer
 	conf.Consumer.Offsets.Initial = sarama.OffsetOldest
-	conf.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategySticky
+	conf.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.BalanceStrategySticky}
 
 	return conf
 }

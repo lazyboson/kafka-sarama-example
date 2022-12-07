@@ -20,7 +20,7 @@ func InitProducer(brokers []string, topic string) *Producer {
 		panic("failed to connect to producer")
 	}
 	p.flowEventProducer = prod
-	p.topic = "test-poc-topic"
+	p.topic = topic
 	return p
 }
 

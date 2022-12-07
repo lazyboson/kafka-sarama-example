@@ -9,9 +9,9 @@ import (
 
 func main() {
 	brokers := []string{"localhost:9092"}
-	topic := "test-poc-topic"
+	topic := "kafka-sarama-poc"
 	prod := kf.InitProducer(brokers, topic)
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		key, _ := uuid.GenerateUUID()
 		err := prod.WriteMessage(key, string(i))
 		if err != nil {
