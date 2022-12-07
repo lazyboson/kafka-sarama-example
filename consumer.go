@@ -2,6 +2,7 @@ package kf
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/Shopify/sarama"
 )
@@ -10,6 +11,11 @@ type Consumer struct {
 	flowEventReader sarama.ConsumerGroup
 	topic           string
 	brokerUrls      []string
+}
+
+type data struct {
+	name     string `json:"name"`
+	employee string `json:"employee"`
 }
 
 func InitConsumer(brokers []string, topic string) *Consumer {
@@ -54,7 +60,12 @@ func (l *KafkaConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSessio
 }
 
 func (c *Consumer) logMessage(msg *sarama.ConsumerMessage) {
-	fmt.Printf("messages: key: %s and val:%s", string(msg.Key), string(msg.Value))
+	d := &data{}
+	err := json.Unmarshal(msg.Value, d)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Printf("messages: key: %s and val:%+v", string(msg.Key), d)
 }
 
 func createSaramaKafkaConf() *sarama.Config {

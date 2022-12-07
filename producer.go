@@ -72,7 +72,7 @@ func newFlowWriter(brokers []string) (sarama.SyncProducer, error) {
 	return producer, err
 }
 
-func (p *Producer) WriteMessage(uuid, data string) error {
+func (p *Producer) WriteMessage(uuid string, data []byte) error {
 	msg := &sarama.ProducerMessage{
 		Topic: p.topic,
 		Key:   sarama.ByteEncoder(uuid),

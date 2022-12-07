@@ -1,11 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/go-uuid"
 	kf "kafka-Sarama"
 	"time"
 )
+
+type data struct {
+	name     string `json:"name"`
+	employee string `json:"employee"`
+}
 
 func main() {
 	brokers := []string{"localhost:9092"}
@@ -13,7 +19,12 @@ func main() {
 	prod := kf.InitProducer(brokers, topic)
 	for i := 0; i < 10; i++ {
 		key, _ := uuid.GenerateUUID()
-		err := prod.WriteMessage(key, string(i))
+		val := &data{
+			name:     "ashutosh",
+			employee: "self-employed",
+		}
+		d, _ := json.Marshal(val)
+		err := prod.WriteMessage(key, d)
 		if err != nil {
 			fmt.Print("error in data production")
 		}
