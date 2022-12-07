@@ -7,9 +7,10 @@ import (
 )
 
 type Consumer struct {
-	flowEventReader sarama.ConsumerGroup
-	topic           string
-	brokerUrls      []string
+	flowEventReader             sarama.ConsumerGroup
+	topic                       string
+	brokerUrls                  []string
+	exampleConsumerGroupHandler sarama.ConsumerGroupHandler
 }
 
 func InitConsumer(brokers []string, topic string) *Consumer {
@@ -20,37 +21,43 @@ func InitConsumer(brokers []string, topic string) *Consumer {
 		err error
 	)
 	conf := createSaramaKafkaConf()
-	c.flowEventReader, err = sarama.NewConsumerGroup(c.brokerUrls, "flowExecutor", conf)
+	c.flowEventReader, err = sarama.NewConsumerGroup(c.brokerUrls, "myconf", conf)
 	if err != nil {
 		panic("failed to create consumer group on kafka cluster")
 	}
+	c.exampleConsumerGroupHandler = p{}
 	return c
+}
+
+type p struct {
+	Cons *Consumer
 }
 
 func (c *Consumer) HandleMessages() {
 	// Consume from kafka and process
 	for {
-		e := exampleConsumerGroupHandler{}
-		err := c.flowEventReader.Consume(context.Background(), []string{c.topic}, e)
+		var err = c.flowEventReader.Consume(context.Background(), []string{c.topic}, &p{Cons: c})
 		if err != nil {
-			fmt.Errorf("FAILED")
+			fmt.Println("FAILED")
+			continue
 		}
+		fmt.Println("messages are received")
 	}
 
 }
-
-type exampleConsumerGroupHandler struct{}
-
-func (exampleConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
-func (exampleConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
-func (h exampleConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	fmt.Println("inside the ConsumerClaim")
+func (p) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (p) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (l p) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	fmt.Println("inside the  first ConsumerClaim")
 	for msg := range claim.Messages() {
-		fmt.Printf("message data: %s", string(msg.Key))
-		fmt.Printf("Message topic:%q partition:%d offset:%d\n", msg.Topic, msg.Partition, msg.Offset)
+		l.Cons.logMessage(msg)
 		sess.MarkMessage(msg, "")
 	}
 	return nil
+}
+
+func (c *Consumer) logMessage(msg *sarama.ConsumerMessage) {
+	fmt.Printf("messages: key: %s and val:%s", string(msg.Key), string(msg.Value))
 }
 
 func createSaramaKafkaConf() *sarama.Config {
@@ -62,7 +69,7 @@ func createSaramaKafkaConf() *sarama.Config {
 	}
 	conf.Version = kafkaVer
 	conf.Consumer.Offsets.Initial = sarama.OffsetOldest
-	conf.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.BalanceStrategySticky}
+	conf.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.BalanceStrategyRoundRobin}
 
 	return conf
 }

@@ -1,6 +1,7 @@
 package kf
 
 import (
+	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/segmentio/kafka-go"
 	"net"
@@ -78,9 +79,11 @@ func (p *Producer) WriteMessage(uuid, data string) error {
 		Value: sarama.ByteEncoder(data),
 	}
 
-	_, _, err := p.flowEventProducer.SendMessage(msg)
+	part, off, err := p.flowEventProducer.SendMessage(msg)
 	if err != nil {
 		return err
+	} else {
+		fmt.Printf("message wriiten on part:%d and offset: %d", part, off)
 	}
 	return nil
 }
