@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/go-uuid"
-	kf "kafka-Sarama"
+	"kafka-Sarama/pkg"
 	"time"
 )
 
@@ -14,9 +14,9 @@ type data struct {
 }
 
 func main() {
-	brokers := []string{"localhost:9092"}
+	brokers := []string{"local-kafka-cp-kafka.voice.svc.cluster.local:9092"}
 	topic := "kafka-sarama-poc"
-	prod := kf.InitProducer(brokers, topic)
+	prod := pkg.InitProducer(brokers, topic)
 	for i := 0; i < 10; i++ {
 		key, _ := uuid.GenerateUUID()
 		val := &data{
@@ -29,7 +29,7 @@ func main() {
 			fmt.Print("error in data production")
 		}
 	}
-	cons := kf.InitConsumer(brokers, topic)
-	go cons.HandleMessages()
+	cons := pkg.InitConsumer(brokers, topic)
+	cons.HandleMessages()
 	time.Sleep(2 * time.Second)
 }

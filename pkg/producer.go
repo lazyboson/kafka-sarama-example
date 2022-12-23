@@ -1,4 +1,4 @@
-package kf
+package pkg
 
 import (
 	"fmt"
@@ -6,6 +6,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"net"
 	"strconv"
+	"time"
 )
 
 type Producer struct {
@@ -83,7 +84,8 @@ func (p *Producer) WriteMessage(uuid string, data []byte) error {
 	if err != nil {
 		return err
 	} else {
-		fmt.Printf("message wriiten on part:%d and offset: %d", part, off)
+		fmt.Printf("time:%s message wriiten on part:%d and offset: %d", time.Now().String(), part, off)
+		fmt.Println()
 	}
 	return nil
 }

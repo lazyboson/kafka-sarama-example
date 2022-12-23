@@ -1,10 +1,11 @@
-package kf
+package pkg
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/Shopify/sarama"
+	"time"
 )
 
 type Consumer struct {
@@ -65,7 +66,8 @@ func (c *Consumer) logMessage(msg *sarama.ConsumerMessage) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Printf("messages: key: %s and val:%+v", string(msg.Key), d)
+	fmt.Printf("time: %s messages: key: %s and val:%+v", time.Now().String(), string(msg.Key), d)
+	fmt.Println()
 }
 
 func createSaramaKafkaConf() *sarama.Config {
